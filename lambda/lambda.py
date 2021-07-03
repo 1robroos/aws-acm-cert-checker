@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import os
-import pypd
 import boto3
 import logging
 import json
@@ -68,7 +67,7 @@ def create_json(acm, array_of_arns):
     number_of_certs = len(array_of_arns)
     todays_date = datetime.date.today()
     # Iterate through the AWS ACM certificates and create a detailed json payload of the certificate
-    for i in xrange(number_of_certs):
+    for i in range(number_of_certs):
         r = acm.describe_certificate(CertificateArn=array_of_arns[i])
         expires_on = ((r['Certificate']['NotAfter']).date())
         issued_on = ((r['Certificate']['NotBefore']).date())
@@ -133,7 +132,7 @@ def lambda_handler(event, context):
         else:
             ### Iterate through the entire array of arns and do not error if out of range is reached
             try:
-                for i in xrange(99):   ### Maximum range of 99 certificates has been set here for AWS ACM, adjustable if you have more...
+                for i in range(99):   ### Maximum range of 99 certificates has been set here for AWS ACM, adjustable if you have more...
                     array_of_arns.append(resp['CertificateSummaryList'][i]['CertificateArn'])
             except IndexError:
                 pass
