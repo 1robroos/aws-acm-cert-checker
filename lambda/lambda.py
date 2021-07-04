@@ -93,6 +93,8 @@ def create_json(acm, array_of_arns):
         ### Set alerts at 90 days, 60 days, 30 days, and every day for week leading up to expiration
         if (expire_in == 90):
             send_notification(data, summarized_message) # data is the full json details, summarized_message is the short tldr message
+        elif (expire_in > 90):  # just to check if it works
+            send_notification(data, summarized_message)
         elif (expire_in == 60):
             send_notification(data, summarized_message)
         elif (expire_in == 30):

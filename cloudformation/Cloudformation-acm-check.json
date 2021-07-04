@@ -1,0 +1,98 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create acm check lambda",
+    "Resources": {
+        "LambdaExecutionRole": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": "s3:GetObject",
+                                    "Effect": "Allow",
+                                    "Resource": "arn:aws:s3:::companybucketrobroos/acmcheck/*"
+                                }
+                            ]
+                        },
+                        "PolicyName": "root"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "LambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "companybucketrobroos",
+                    "S3Key": "acmcheck/deployment.zip"
+                },
+                "Handler": "lambda.lambda_handler",
+                "MemorySize": 128,
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaExecutionRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "python3.8",
+                "Timeout": 60
+            }
+        },
+        "LambdaFunctionSchedule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+                "ScheduleExpression": "cron(00 0 * * 0 *)",
+                "Targets": [
+                    {
+                        "Arn": {
+                            "Fn::GetAtt": [
+                                "LambdaFunction",
+                                "Arn"
+                            ]
+                        },
+                        "Id": "1"
+                    }
+                ]
+            }
+        },
+        "LambdaFunctionCwPermission": {
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                    "Fn::GetAtt": [
+                        "LambdaFunctionSchedule",
+                        "Arn"
+                    ]
+                }
+            },
+            "Type": "AWS::Lambda::Permission"
+        }
+    }
+}
