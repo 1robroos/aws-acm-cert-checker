@@ -29,7 +29,7 @@
                                 {
                                     "Action": "s3:GetObject",
                                     "Effect": "Allow",
-                                    "Resource": "arn:aws:s3:::companybucketrobroos/acmcheck/*"
+                                    "Resource": "arn:aws:s3:::kfsolutions-code-eu-central-1/acmcheck/*"
                                 }
                             ]
                         },
