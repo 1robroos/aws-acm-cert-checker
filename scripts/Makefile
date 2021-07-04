@@ -5,7 +5,7 @@
 #IMG     := ${REG}:${TAG}
 #LATEST  := ${REG}:latest
 
-#default: build push updateservice
+default: lambda_upload_to_s3 deployCFN
 
 #build:
 #        docker build -t ${IMG} .
@@ -28,6 +28,11 @@
 	#        #endif
 	#
 	#deployCFNinPRD:
+lambda_upload_to_s3:
+		cp ../lambda/lambda.py .
+		zip -r deployment.zip lambda.py
+		aws s3 cp deployment.zip s3://kfsolutions-code-eu-central-1/acmcheck/deployment.zip
+		rm lambda.py deployment.zip
 deployCFN:	
 		aws cloudformation deploy --template-file /home/ec2-user/environment/pythonacmcheck/aws-acm-cert-checker/cloudformation/Cloudformation-acm-check.json  --stack-name acm-check --capabilities CAPABILITY_NAMED_IAM  --region eu-central-1 --s3-bucket cf-templates-3mz2622gpxvp-eu-central-1
 
