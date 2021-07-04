@@ -43,7 +43,7 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Code": {
-                    "S3Bucket": "companybucketrobroos",
+                    "S3Bucket": "kfsolutions-code-eu-central-1",
                     "S3Key": "acmcheck/deployment.zip"
                 },
                 "Handler": "lambda.lambda_handler",
