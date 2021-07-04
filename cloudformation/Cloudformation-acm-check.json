@@ -3,6 +3,7 @@
     "Description": "Create acm check lambda",
     "Resources": {
         "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
             "Properties": {
                 "AssumeRolePolicyDocument": {
                     "Statement": [
@@ -21,6 +22,7 @@
                     "Version": "2012-10-17"
                 },
                 "Path": "/",
+                "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
                 "Policies": [
                     {
                         "PolicyDocument": {
@@ -30,18 +32,32 @@
                                     "Action": "s3:GetObject",
                                     "Effect": "Allow",
                                     "Resource": "arn:aws:s3:::kfsolutions-code-eu-central-1/acmcheck/*"
+                                },
+                                {
+                                    "Action": [
+                                        "ec2:DescribeRegions",
+                                        "acm:ListCertificates",
+                                        "acm:DescribeCertificate",
+                                        "SNS:Publish"
+                                        ],
+                                    "Effect": "Allow",
+                                    "Resource": "*"
                                 }
                             ]
                         },
                         "PolicyName": "root"
                     }
                 ]
-            },
-            "Type": "AWS::IAM::Role"
+            }
         },
         "LambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
+                "FunctionName":"acm-check",
+                "Environment":
+                {
+                    "Variables" : {ALERT_METHOD : SNS, SNS_ARN : arn:aws:sns:eu-central-1:969526043371:kfsolutions-email}
+                },
                 "Code": {
                     "S3Bucket": "kfsolutions-code-eu-central-1",
                     "S3Key": "acmcheck/deployment.zip"
@@ -61,7 +77,7 @@
         "LambdaFunctionSchedule": {
             "Type": "AWS::Events::Rule",
             "Properties": {
-                "ScheduleExpression": "cron(00 0 * * 0 *)",
+                "ScheduleExpression": "cron(0 12 * * ? *)",
                 "Targets": [
                     {
                         "Arn": {
@@ -76,6 +92,7 @@
             }
         },
         "LambdaFunctionCwPermission": {
+            "Type": "AWS::Lambda::Permission",
             "Properties": {
                 "Action": "lambda:InvokeFunction",
                 "FunctionName": {
@@ -91,8 +108,7 @@
                         "Arn"
                     ]
                 }
-            },
-            "Type": "AWS::Lambda::Permission"
+            }
         }
     }
 }
