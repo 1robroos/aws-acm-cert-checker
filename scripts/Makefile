@@ -34,7 +34,8 @@ lambda_upload_to_s3:
 		aws s3 cp deployment.zip s3://kfsolutions-code-eu-central-1/acmcheck/deployment.zip
 		rm lambda.py deployment.zip
 deployCFN:	
-		aws cloudformation deploy --template-file /home/ec2-user/environment/pythonacmcheck/aws-acm-cert-checker/cloudformation/Cloudformation-acm-check.json  --stack-name acm-check --capabilities CAPABILITY_NAMED_IAM  --region eu-central-1 --s3-bucket cf-templates-3mz2622gpxvp-eu-central-1
+		aws cloudformation deploy --template-file /home/ec2-user/environment/pythonacmcheck/aws-acm-cert-checker/cloudformation/Cloudformation-acm-check.json  \
+		--stack-name acm-check --capabilities CAPABILITY_NAMED_IAM  --region eu-central-1 --s3-bucket cf-templates-3mz2622gpxvp-eu-central-1 --parameter-overrides Bucket=arn:aws:s3:::kfsolutions-code-eu-central-1 BucketKeyLambda=acmcheck SNSTopic=arn:aws:sns:eu-central-1:969526043371:kfsolutions-email LambdaZipFile=deployment.zip
 
 updatelambda:
 		aws lambda update-function-code --function-name acm-check --s3-bucket kfsolutions-code-eu-central-1 --s3-key acmcheck/deployment.zip --region eu-central-1
