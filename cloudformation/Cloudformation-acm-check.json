@@ -1,6 +1,30 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Create acm check lambda",
+    "Parameters": {
+        "Bucket": {
+            "Description": "Bucket where lambda code is placed as zip",
+            "Type": "String",
+            "ConstraintDescription": "must be the name of an existing bucket ( not in arn format )."
+        },
+        "BucketKeyLambda": {
+            "Description": "Bucket subdir where lambda code is placed as zip",
+            "Type": "String",
+            "ConstraintDescription": "must be the name of an existing bucket key."
+        },
+        "LambdaZipFile": {
+            "Description": "Name of zipfile",
+            "Type": "String"
+        },
+        "SNSTopic": {
+            "Description": "SNS Topic - in arn format  - for sending report.",
+            "Type": "String"
+        },
+         "Schedule": {
+            "Description": "Schedule this check in cron format, i.e. cron(0 12 * * ? *) for each day at noon. ",
+            "Type": "String"
+        }
+    },
     "Resources": {
         "LambdaExecutionRole": {
             "Type": "AWS::IAM::Role",
@@ -22,7 +46,9 @@
                     "Version": "2012-10-17"
                 },
                 "Path": "/",
-                "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
                 "Policies": [
                     {
                         "PolicyDocument": {
@@ -31,7 +57,21 @@
                                 {
                                     "Action": "s3:GetObject",
                                     "Effect": "Allow",
-                                    "Resource": "arn:aws:s3:::kfsolutions-code-eu-central-1/acmcheck/*"
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [ "arn:aws:s3:::",
+                                                {
+                                                    "Ref": "Bucket"
+                                                },
+                                                "/",
+                                                {
+                                                    "Ref": "BucketKeyLambda"
+                                                },
+                                                "/*"
+                                            ]
+                                        ]
+                                    }
                                 },
                                 {
                                     "Action": [
@@ -39,7 +79,7 @@
                                         "acm:ListCertificates",
                                         "acm:DescribeCertificate",
                                         "SNS:Publish"
-                                        ],
+                                    ],
                                     "Effect": "Allow",
                                     "Resource": "*"
                                 }
@@ -50,18 +90,33 @@
                 ]
             }
         },
-        "LambdaFunction": {
+                "LambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "FunctionName":"acm-check",
                 "Environment":
                 {
-                    "Variables" : {ALERT_METHOD : SNS, SNS_ARN : arn:aws:sns:eu-central-1:969526043371:kfsolutions-email}
+                    "Variables" : {ALERT_METHOD : SNS, SNS_ARN : {"Ref": "SNSTopic" }}
                 },
                 "Code": {
-                    "S3Bucket": "kfsolutions-code-eu-central-1",
-                    "S3Key": "acmcheck/deployment.zip"
-                },
+                    "S3Bucket":                 {
+                                                    "Ref": "Bucket"
+                                                },
+                                     "S3Key": {
+                            "Fn::Join": [
+                                "",
+                                [
+                                    {
+                                        "Ref": "BucketKeyLambda"
+                                    },
+                                    "/",
+                                    {
+                                        "Ref": "LambdaZipFile"
+                                    }
+                                ]
+                            ]
+                        }
+                    },
                 "Handler": "lambda.lambda_handler",
                 "MemorySize": 128,
                 "Role": {
@@ -77,7 +132,9 @@
         "LambdaFunctionSchedule": {
             "Type": "AWS::Events::Rule",
             "Properties": {
-                "ScheduleExpression": "cron(0 12 * * ? *)",
+                "ScheduleExpression":  {
+                                                    "Ref": "Schedule"
+                                                },
                 "Targets": [
                     {
                         "Arn": {
