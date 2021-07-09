@@ -1,7 +1,5 @@
 #!/bin/bash
-# aws lambda create-function --function-name my-acm-check-function \
-#--zip-file fileb:///home/ec2-user/environment/pythonacmcheck/aws-acm-cert-checker/deployment.zip --handler lambda.lambda_handler --runtime python3.7 \
-#--role arn:aws:iam::969526043371:role/ExecutelambdaRole
+# Create function by hand, so not with cloudformation
 aws lambda create-function --function-name my-acm-check-function \
 --zip-file fileb://deployment.zip --handler lambda.lambda_handler --runtime python3.8 \
 --role arn:aws:iam::969526043371:role/LambdaAdminRole --timeout 60
